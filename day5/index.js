@@ -102,7 +102,6 @@ const secondScaryLines = iterateInputs(
         } else {
             let x = x1;
             let y = y1;
-            // let [y, , yAction] = y1 < y2 ? [y1, y2, '+'] : [y1, y2, '-'];
 
             while (true) {
                 if (++diagram[y][x] === 2) {
