@@ -1,15 +1,12 @@
 const input = getInputArray(false);
-
 const drawnNumbers = input[0].split(',');
 
 class Combination {
     constructor() {
         this.keys = [];
-        this.originalList = [];
     }
     add(key) {
         this.keys.push(key);
-        this.originalList.push(key);
     }
     remove(key) {
         const i = this.keys.indexOf(key);
@@ -65,31 +62,6 @@ class Board {
     }
 
     buildCombinations() {
-        // const diagonal = new Combination();
-        // for (let i = 0; i < 5; i++) {
-        //     const key = this.board[i][i];
-        //     diagonal.add(key);
-
-        //     const original = this.keyMap[key];
-        //     this.keyMap[key] = () => {
-        //         original();
-        //         diagonal.remove(key);
-        //     };
-        // }
-
-        // const reverseDiagonal = new Combination();
-        // for (let row = 0, col = 4; row < 5; row++, col--) {
-        //     const key = this.board[row][col];
-        //     reverseDiagonal.add(key);
-        //     const original = this.keyMap[key];
-
-        //     this.keyMap[key] = () => {
-        //         original();
-        //         reverseDiagonal.remove(key);
-        //     };
-        // }
-        // this.combinations.push(diagonal);
-        // this.combinations.push(reverseDiagonal);
         this.combinations = this.columnCombinations.concat(this.combinations);
         this.combinations = this.rowCombinations.concat(this.combinations);
     }
@@ -107,33 +79,35 @@ class Board {
     }
 }
 
-const boards = [new Board()];
+function buildBoards() {
+    const boards = [new Board()];
 
-let boardIndex = 0;
-for (let i = 2; i < input.length; i++) {
-    const row = input[i].trim();
-    if (!row) {
-        boardIndex++;
-        boards.push(new Board());
-        continue;
+    let boardIndex = 0;
+    for (let i = 2; i < input.length; i++) {
+        const row = input[i].trim();
+        if (!row) {
+            boardIndex++;
+            boards.push(new Board());
+            continue;
+        }
+
+        const numbers = row
+            .split(' ')
+            .filter(Boolean)
+            .map((n) => Number(n));
+        boards[boardIndex].addRow(numbers);
     }
 
-    const numbers = row
-        .split(' ')
-        .filter(Boolean)
-        .map((n) => Number(n));
-    boards[boardIndex].addRow(numbers);
+    for (const board of boards) {
+        board.buildCombinations();
+    }
+
+    return boards;
 }
 
-for (const board of boards) {
-    board.buildCombinations();
-}
-
-function findWinner() {
-    let num;
-    let board;
-    for (num of drawnNumbers) {
-        for (board of boards) {
+function findWinnerPart1(boards) {
+    for (let num of drawnNumbers) {
+        for (let board of boards) {
             board.callNumber(num);
             if (board.hasWinner()) {
                 return [num, board];
@@ -141,10 +115,40 @@ function findWinner() {
         }
     }
 }
-const [num, board] = findWinner();
-const remainingSum = Object.keys(board.keyMap).reduce(
-    (sum, n) => sum + Number(n),
-    0
-);
+function createAnswerFromWinner(board, lastNumber) {
+    const remainingSum = Object.keys(board.keyMap).reduce(
+        (sum, n) => sum + Number(n),
+        0
+    );
+    return remainingSum * lastNumber;
+}
 
-logAnswer(FIRST, remainingSum * num);
+let boards = buildBoards();
+let [lastNumber, board] = findWinnerPart1(boards);
+
+logAnswer(FIRST, createAnswerFromWinner(board, lastNumber));
+
+function findWinnerPart2(boards) {
+    for (let num of drawnNumbers) {
+        let i = 0;
+        while (i < boards.length) {
+            const board = boards[i];
+            board.callNumber(num);
+            if (board.hasWinner()) {
+                if (boards.length === 1) {
+                    return [num, boards[0]];
+                } else {
+                    boards.splice(i, 1);
+                }
+            } else {
+                i++;
+            }
+        }
+    }
+}
+
+// Build again to reset - being lazy with resetting internal details
+boards = buildBoards();
+[lastNumber, board] = findWinnerPart2(boards);
+
+logAnswer(SECOND, createAnswerFromWinner(board, lastNumber));
