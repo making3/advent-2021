@@ -1,12 +1,10 @@
 {
-  "name": "advent-of-code-2021",
-  "version": "1.0.0",
-  "description": "",
-  "main": "readInput.js",
-  "scripts": {
-    "go": "node run.js"
-  },
-  "author": "Matthew King",
-  "private": true,
-  "license": "ISC"
+    "name": "advent-of-code-2021",
+    "version": "1.0.0",
+    "description": "Advent of Code 2021 - JavaScript solutions",
+    "main": "run.js",
+    "scripts": {},
+    "author": "Matthew King",
+    "private": true,
+    "license": "ISC"
 }
