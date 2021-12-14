@@ -60,6 +60,7 @@ let input = getInputArray(true).map((line, row) =>
 );
 
 const tickCount = 100;
+
 for (let i = 0; i < tickCount; i++) {
     for (const row of input) {
         for (const octopus of row) {
