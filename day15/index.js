@@ -1,4 +1,4 @@
-const SAMPLE = true;
+const SAMPLE = false;
 
 class Graph {
     constructor() {
@@ -18,7 +18,7 @@ class Graph {
     }
 }
 
-const graph = new Graph();
+let graph = new Graph();
 
 const input = getInputArray(SAMPLE).map((line, row) =>
     line
@@ -35,7 +35,7 @@ const input = getInputArray(SAMPLE).map((line, row) =>
         })
 );
 
-const colLength = input[0].length;
+let colLength = input[0].length;
 
 const directions = [
     [-1, 0],
@@ -44,18 +44,19 @@ const directions = [
     [0, 1],
 ];
 
-graph.nodes.forEach((node, i) => {
-    const { row, col } = node;
+function addEdgesToGraph(rawGraph, colLength) {
+    graph.nodes.forEach((node, i) => {
+        const { row, col } = node;
 
-    for (const [x, y] of directions) {
-        if (input[row + x]?.[col + y]) {
-            const toIndex = (row + x) * colLength + (col + y);
-            graph.addEdge(i, toIndex);
+        for (const [x, y] of directions) {
+            if (rawGraph[row + x]?.[col + y]) {
+                const toIndex = (row + x) * colLength + (col + y);
+                graph.addEdge(i, toIndex);
+            }
         }
-    }
-});
-
-const nodeLength = graph.nodes.length;
+    });
+}
+addEdgesToGraph(input, colLength);
 
 function getMinimumDistance(dist, visited) {
     let min = Number.MAX_VALUE;
@@ -107,4 +108,67 @@ function Dijkstra() {
     return dist[nodeLength - 1];
 }
 
+let nodeLength = graph.nodes.length;
+
 logAnswer(FIRST, Dijkstra());
+
+const lines = getInputArray(SAMPLE);
+graph = new Graph();
+
+function addNodes(row, initialNodes, tile = 0) {
+    if (tile === 5) {
+        return;
+    }
+
+    const newNodes = initialNodes.map((n, col) => {
+        const node = {
+            row,
+            col: col + tile * initialNodes.length,
+            val: Number(n),
+        };
+
+        graph.addNode(node);
+
+        if (n + 1 > 9) {
+            return 1;
+        }
+        return n + 1;
+    });
+
+    if (tile < 4) {
+        lines[row] = lines[row].concat(newNodes);
+    }
+    addNodes(row, newNodes, tile + 1);
+    return newNodes;
+}
+
+let tile = 0;
+
+function addRows(tile = 0) {
+    if (tile === 5) {
+        return;
+    }
+    const len = lines.length;
+
+    for (let row = 0 + colLength * tile; row < len; row++) {
+        const initialNodes = Array.isArray(lines[row])
+            ? lines[row]
+            : lines[row]
+                  .trim()
+                  .split('')
+                  .map((n) => Number(n));
+
+        lines[row] = initialNodes;
+        const newNodes = addNodes(row, initialNodes);
+        if (tile < 4) {
+            lines.push(newNodes);
+        }
+    }
+    addRows(tile + 1);
+}
+
+addRows();
+addEdgesToGraph(lines, input[0].length * 5);
+
+nodeLength = graph.nodes.length;
+logAnswer(SECOND, Dijkstra());
