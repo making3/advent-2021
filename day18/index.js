@@ -43,12 +43,13 @@ function reduceSnailfish(snailfish) {
                 snailfish[0] = 0;
             }
             if (result) {
-                if (Array.isArray(right)) {
-                    reduce(right, level + 1, 'left');
-                }
-                if (!Array.isArray(right) && exploded[1] > -1) {
-                    snailfish[1] = exploded[1] + snailfish[1];
-                    exploded[1] = -1;
+                if (exploded[1] > -1) {
+                    if (Array.isArray(right)) {
+                        reduce(right, level + 1, 'left');
+                    } else {
+                        snailfish[1] = exploded[1] + snailfish[1];
+                        exploded[1] = -1;
+                    }
                 }
                 return true;
             }
@@ -64,14 +65,15 @@ function reduceSnailfish(snailfish) {
             const result = reduce(right, level + 1, explodeDir);
             if (result === EXPLODE_TYPE.DIRECT_CHILD) {
                 snailfish[1] = 0;
-                if (Array.isArray(left)) {
-                    reduce(left, level + 1, 'right');
-                }
             }
             if (result) {
-                if (!Array.isArray(left) && exploded[0] > -1) {
-                    snailfish[0] = exploded[0] + snailfish[0];
-                    exploded[0] = -1;
+                if (exploded[0] > -1) {
+                    if (Array.isArray(left)) {
+                        reduce(left, level + 1, 'right');
+                    } else {
+                        snailfish[0] = exploded[0] + snailfish[0];
+                        exploded[0] = -1;
+                    }
                 }
                 return true;
             }
