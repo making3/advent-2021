@@ -1,5 +1,5 @@
 const SAMPLE = false;
-const inputs = getInputArray(SAMPLE).map((line) => JSON.parse(line));
+let inputs = getInputArray(SAMPLE).map((line) => JSON.parse(line));
 
 function addSnailfish(first, second) {
     return [first, second];
@@ -134,3 +134,35 @@ function calculateMagnitude(finalSum) {
 
     return left * 3 + right * 2;
 }
+
+let max = 0;
+
+function calcMag(input1, input2) {
+    const result = addSnailfish(input1, input2);
+    reduceSnailfish(result);
+    return calculateMagnitude(result);
+}
+
+inputs = getInputArray(SAMPLE).map((line) => JSON.parse(line));
+for (let i = 0; i < inputs.length; i++) {
+    for (let k = i + 1; k < inputs.length; k++) {
+        let m = calcMag(
+            JSON.parse(JSON.stringify(inputs[i])),
+            JSON.parse(JSON.stringify(inputs[k]))
+        );
+
+        if (m > max) {
+            max = m;
+        }
+        m = calcMag(
+            JSON.parse(JSON.stringify(inputs[k])),
+            JSON.parse(JSON.stringify(inputs[i]))
+        );
+
+        if (m > max) {
+            max = m;
+        }
+    }
+}
+
+logAnswer(SECOND, max);
