@@ -12,12 +12,14 @@ const EXPLODE_TYPE = {
 
 function reduceSnailfish(snailfish) {
     let exploded = null;
-    let explodeDir;
     let splitAction = null;
 
-    function reduce(snailfish, level = 0) {
+    function reduce(snailfish, level = 0, explodeDir = null) {
+        if (exploded && exploded[0] === -1 && exploded[1] === -1) {
+            // Short circuit
+            return;
+        }
         if (level === 4 && !exploded) {
-            console.log('explode!', snailfish);
             exploded = snailfish;
             return EXPLODE_TYPE.DIRECT_CHILD;
         }
@@ -35,93 +37,72 @@ function reduceSnailfish(snailfish) {
             };
         }
 
-        if (explodeDir === 'right' && exploded[0] > -1) {
-            if (!Array.isArray(left)) {
-                console.log('0', exploded[0]);
-                snailfish[0] = exploded[0] + snailfish[0];
-                exploded[0] = -1;
-            } else if (!Array.isArray(right)) {
-                console.log('1', exploded[0]);
-                snailfish[1] = exploded[0] + snailfish[1];
-                exploded[0] = -1;
-            }
-        }
-
-        if (explodeDir === 'left' && exploded[1] > -1) {
-            if (!Array.isArray(right)) {
-                console.log('2', exploded[1]);
-                snailfish[1] = exploded[1] + snailfish[1];
-                exploded[1] = -1;
-            } else if (!Array.isArray(left)) {
-                console.log('3', exploded[1]);
-                snailfish[0] = exploded[1] + snailfish[0];
-                exploded[1] = -1;
-            }
-        }
-
         if (Array.isArray(left)) {
-            const result = reduce(left, level + 1);
+            const result = reduce(left, level + 1, explodeDir);
             if (result === EXPLODE_TYPE.DIRECT_CHILD) {
                 snailfish[0] = 0;
             }
             if (result) {
-                explodeDir = 'left';
+                if (Array.isArray(right)) {
+                    reduce(right, level + 1, 'left');
+                }
+                if (!Array.isArray(right) && exploded[1] > -1) {
+                    snailfish[1] = exploded[1] + snailfish[1];
+                    exploded[1] = -1;
+                }
+                return true;
             }
+        } else if (explodeDir === 'left' && exploded[1] > -1) {
+            snailfish[0] = exploded[1] + snailfish[0];
+            exploded[1] = -1;
+        } else if (explodeDir === 'right' && exploded[0] > -1) {
+            snailfish[0] = exploded[0] + snailfish[0];
+            exploded[0] = -1;
         }
 
         if (Array.isArray(right)) {
-            const result = reduce(right, level + 1);
+            const result = reduce(right, level + 1, explodeDir);
             if (result === EXPLODE_TYPE.DIRECT_CHILD) {
                 snailfish[1] = 0;
+                if (Array.isArray(left)) {
+                    reduce(left, level + 1, 'right');
+                }
             }
             if (result) {
-                explodeDir = 'right';
+                if (!Array.isArray(left) && exploded[0] > -1) {
+                    snailfish[0] = exploded[0] + snailfish[0];
+                    exploded[0] = -1;
+                }
+                return true;
             }
+        } else if (explodeDir === 'left' && exploded[1] > -1) {
+            snailfish[1] = exploded[1] + snailfish[1];
+            exploded[1] = -1;
+        } else if (explodeDir === 'right' && exploded[0] > -1) {
+            snailfish[1] = exploded[0] + snailfish[1];
+            exploded[0] = -1;
         }
 
-        if (explodeDir === 'right' && exploded[0] > -1) {
-            if (!Array.isArray(left)) {
-                console.log('4', exploded[0]);
-                snailfish[0] = exploded[0] + snailfish[0];
-                exploded[0] = -1;
-            } else if (!Array.isArray(right)) {
-                console.log('5', exploded[0]);
-                snailfish[1] = exploded[0] + snailfish[1];
-                exploded[0] = -1;
-            }
-        }
-
-        if (explodeDir === 'left' && exploded[1] > -1) {
-            if (!Array.isArray(right)) {
-                console.log('6', exploded[1]);
-                snailfish[1] = exploded[1] + snailfish[1];
-                exploded[1] = -1;
-            } else if (!Array.isArray(left)) {
-                console.log('7', exploded[1]);
-                snailfish[0] = exploded[1] + snailfish[0];
-                exploded[1] = -1;
-            }
-        }
-
-        return explodeDir ? EXPLODE_TYPE.DESCENDENT : null;
+        return !!explodeDir;
     }
 
     do {
-        console.log('do', JSON.stringify(snailfish));
+        // console.log('do', JSON.stringify(snailfish));
+        // console.log('doex', exploded);
         exploded = null;
         explodeDir = null;
         splitAction = null;
         reduce(snailfish);
         if (exploded) {
-            console.log('explode');
+            // console.log('explode');
         } else if (splitAction) {
             splitAction();
-            console.log('split');
+            // console.log('split');
         }
-        console.log();
+        // console.log();
     } while (exploded || splitAction);
 }
-let ex = [[[[[9, 8], 1], 2], 3], 4];
+// let ex = [[[[[9, 8], 1], 2], 3], 4];
 // console.log(reduceSnailfish(ex)); // [[[[0,9],2],3],4]
 // console.log(JSON.stringify(ex));
 
@@ -136,13 +117,13 @@ let ex = [[[[[9, 8], 1], 2], 3], 4];
 // console.log(JSON.stringify(ex));
 
 // console.log();
-// ex = [
-//     [3, [2, [1, [7, 3]]]],
-//     [6, [5, [4, [3, 2]]]],
-// ];
-// console.log(reduceSnailfish(ex)); //[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]
-// console.log(JSON.stringify(ex));
-// console.log();
+let ex = [
+    [3, [2, [1, [7, 3]]]],
+    [6, [5, [4, [3, 2]]]],
+];
+console.log(reduceSnailfish(ex)); //[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]
+console.log(JSON.stringify(ex));
+console.log();
 // console.log(reduceSnailfish(ex)); //[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]
 // console.log(JSON.stringify(ex));
 
@@ -153,13 +134,14 @@ const a = addSnailfish(
     ],
     [1, 1]
 );
-reduceSnailfish(a);
-console.log('result', JSON.stringify(a));
+// reduceSnailfish(a);
+// console.log('result', JSON.stringify(a));
 
-let total = inputs[0];
+// let total = inputs[0];
 // for (let i = 1; i < inputs.length; i++) {
 //     total = addSnailfish(total, inputs[i]);
 //     reduceSnailfish(total);
+//     console.log('do', JSON.stringify(total));
 // }
 
 // logAnswer(FIRST, calculateMagnitude(total));
@@ -204,3 +186,14 @@ function calculateMagnitude(finalSum) {
 
     return left * 3 + right * 2;
 }
+
+// const a = [
+//     [
+//         [[0, 7], 4],
+//         [
+//             [7, 8],
+//             [0, [6, 7]],
+//         ],
+//     ],
+//     [1, 1],
+// ];
